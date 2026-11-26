@@ -1,11 +1,11 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { mkdirSync, openSync, closeSync, writeFileSync, fchmodSync, fsyncSync, renameSync, unlinkSync, readdirSync, readSync, lstatSync, constants } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { Ledger, Invalid, sign, verify, roles, MAX_PACKET } from './core.mjs';
+import { Invalid, sign, verify, roles, MAX_PACKET } from './core.mjs';
 export function atomicJson(file,value,mode=0o600){
   const parent=dirname(file);mkdirSync(parent,{recursive:true,mode:0o700});const tmp=join(parent,`.${randomUUID()}.tmp`);let fd;
   try {fd=openSync(tmp,'wx',0o600);fchmodSync(fd,mode);writeFileSync(fd,JSON.stringify(value)+'\n');fsyncSync(fd);closeSync(fd);fd=undefined;renameSync(tmp,file);const dir=openSync(parent,'r');try{fsyncSync(dir);}finally{closeSync(dir);}}
-  finally {if(fd!==undefined)closeSync(fd);try{unlinkSync(tmp);}catch(e){if(e.code!=='ENOENT')throw e;}}
+  finally {if(fd!==undefined)closeSync(fd);try{unlinkSync(tmp);}catch{/* An interrupted temp file is ignored by the spool. */}}
 }
 export function publish(root,actor,body,key){ const name=`${randomUUID()}.json`;const path=join(root,'inbox',actor,name);atomicJson(path,sign(actor,body,key),0o640);return path; }
 function readPacket(file){const fd=openSync(file,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);try{const buf=Buffer.alloc(MAX_PACKET+1);let n=0,r;while(n<buf.length&&(r=readSync(fd,buf,n,buf.length-n,null))>0)n+=r;if(n>MAX_PACKET)throw new Invalid('oversize packet');return JSON.parse(buf.subarray(0,n).toString('utf8'));}finally{closeSync(fd);}}

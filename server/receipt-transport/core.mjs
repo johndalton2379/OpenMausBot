@@ -11,7 +11,7 @@ export class Invalid extends Error {}
 const check = (condition, message) => { if (!condition) throw new Invalid(message); };
 const exact = (x, keys) => x && typeof x==='object' && !Array.isArray(x) && Object.keys(x).sort().join(',')===keys.sort().join(',');
 const integer = x => Number.isSafeInteger(x) && x>=0;
-const short = x => typeof x==='string' && x.length>0 && x.length<=512 && !/[\x00-\x1f]/.test(x);
+const short = x => typeof x==='string' && x.length>0 && x.length<=512 && Array.from(x).every(c=>c.charCodeAt(0)>=32);
 const digest = x => createHash('sha256').update(x).digest('hex');
 const canonical = x => Array.isArray(x)?x.map(canonical):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canonical(x[k])])):x;
 const mac = (key, actor, payload) => createHmac('sha256',key).update(`omb-receipt-v1:${actor}:${payload}`).digest('hex');
