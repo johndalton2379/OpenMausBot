@@ -31,6 +31,8 @@ const NODE_REQUIRE = {
 // Every file run as its own process.
 const ENTRY_POINTS = [
   "index.ts",
+  "receipt-transport/native.mjs",
+  "receipt-transport/cli.mjs",
   "message-search.worker.ts",
   "text-changes.worker.ts",
   // the `openmausbot` command
